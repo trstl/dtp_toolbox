@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Energy Requirements Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+        }
+        .input-section, .output-section {
+            margin-bottom: 30px;
+        }
+        .input-section label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+        .input-section input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .output-section {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .textbox {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-left: 4px solid #007BFF;
+            margin: 15px 0;
+        }
+        .warning {
+            color: red;
+        }
+        button {
+            background-color: #007BFF;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .info-icon {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            background-color: #007BFF;
+            color: white;
+            font-size: 12px;
+            text-align: center;
+            line-height: 16px;
+            border-radius: 50%;
+            cursor: pointer;
+            position: relative;
+        }
+        .info-icon:hover::after {
+            content: "*Note that Temperature according to Penn State corresponds to the maximum recorded temperature over the last 24h, unless if BMI < 20.5, where Temperature corresponds to actual temperature.";
+            position: absolute;
+            background-color: #f9f9f9;
+            color: #333;
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 4px;
+            top: 20px;
+            left: 20px;
+            width: 300px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+        .horizontal-line {
+            border: none;
+            height: 1px;
+            background-color: #ddd;
+            margin: 20px 0;
+        }
+        .input-section small {
+            display: block;
+            margin-bottom: 10px;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Energy Requirements Calculator</h1>
+
+        <div class="textbox">
+            <p><strong>Harris-Benedict, Mifflin-St Jeor, Penn State, and Toronto equations</strong></p>
+            <p>Adjust the weight, height, and age values according to your values. The output will be displayed below the input section after calculations.</p>
+        </div>
+
+        <form id="calculatorForm" class="input-section">
+            <label for="sex">Sex</label>
+            <select id="sex" name="sex">
+                <option value="M">Male</option>
+                <option value="F">Female</option>
+            </select>
+
+            <label for="weight">Weight (kg)</label>
+            <input type="number" id="weight" name="weight" required>
+
+            <label for="height">Height (m)</label>
+            <input type="number" id="height" name="height" step="0.01" required>
+
+            <label for="age">Age (years)</label>
+            <input type="number" id="age" name="age" required>
+
+            <hr class="horizontal-line">
+
+            <label for="ve">Ve (L/min)</label>
+            <input type="number" id="ve" name="ve">
+
+            <label for="temperature">Temperature (°C) <span class="info-icon">?</span></label>
+            <input type="number" id="temperature" name="temperature">
+
+            <hr class="horizontal-line">
+
+            <label for="tbsa">TBSA (Burn Surface Area %)</label>
+            <small>**TBSA** represents the total burn surface area expressed in % (0-100 range).</small>
+            <input type="number" id="tbsa" name="tbsa">
+
+            <label for="ci">Calories Ingested (kcal)</label>
+            <small>**CI** represents the ingested calories expressed in kcal.</small>
+            <input type="number" id="ci" name="ci">
+
+            <label for="days">Days Since Incident</label>
+            <small>**days** represents days after burn incident.</small>
+            <input type="number" id="days" name="days">
+
+            <label for="activityFactor">Activity Factor</label>
+            <small>**Activity factor** will be used to multiply the estimated requirements.</small>
+            <input type="number" id="activityFactor" name="activityFactor">
+
+            <label for="tbsaStressFactor">TBSA Stress Factor</label>
+            <small>**TBSA Stress factors** can be left blank or adjusted manually. If left blank, the calculator will choose a stress factor based on TBSA.</small>
+            <input type="number" id="tbsaStressFactor" name="tbsaStressFactor">
+
+            <button type="button" onclick="calculateResults()">Calculate</button>
+        </form>
+
+        <div id="outputSection" class="output-section">
+            <h2>Results</h2>
+            <div id="outputMessages"></div>
+        </div>
+    <footer>
+        &copy; 2024 trstl. Licensed under 
+        <a href="https://opensource.org/licenses/MIT" target="_blank">MIT License</a>. 
+        Contact: <a href="mailto:tristan.st-laurent@umontreal.ca">tristan.st-laurent@umontreal.ca</a>
+	<p>version: 23/12/2024</p>
+    </footer>
+    </div>
+
+    <script>
+        function calculateResults() {
+            const requiredFields = ["weight", "height", "age"];
+            const missingFields = requiredFields.filter(field => !document.getElementById(field).value);
+
+            if (missingFields.length > 0) {
+                document.getElementById('outputMessages').innerHTML = `<p class='warning'>Please input values for: ${missingFields.join(', ')}</p>`;
+                return;
+            }
+
+            const sex = document.getElementById('sex').value;
+            const weight = parseFloat(document.getElementById('weight').value);
+            const height = parseFloat(document.getElementById('height').value);
+            const age = parseInt(document.getElementById('age').value, 10);
+            const ve = document.getElementById('ve').value ? parseFloat(document.getElementById('ve').value) : null;
+            const temperature = document.getElementById('temperature').value ? parseFloat(document.getElementById('temperature').value) : null;
+            const tbsa = document.getElementById('tbsa').value ? parseFloat(document.getElementById('tbsa').value) : null;
+            const ci = document.getElementById('ci').value ? parseFloat(document.getElementById('ci').value) : null;
+            const days = document.getElementById('days').value ? parseFloat(document.getElementById('days').value) : null;
+            const activityFactor = document.getElementById('activityFactor').value ? parseFloat(document.getElementById('activityFactor').value) : null;
+            const tbsaStressFactor = document.getElementById('tbsaStressFactor').value ? parseFloat(document.getElementById('tbsaStressFactor').value) : null;
+
+            let messages = "";
+
+            // Warnings
+            if (weight > 350 || weight < 25) {
+                messages += `<p class='warning'>The weight value is outside expected values (25-350 kg).</p>`;
+            }
+            if (height > 2.5 || height < 1) {
+                messages += `<p class='warning'>The height value is outside expected values (1-2.5 m).</p>`;
+            }
+            if (age > 110 || age < 1) {
+                messages += `<p class='warning'>The age value is outside expected values (1-110 years).</p>`;
+            }
+
+            // BMI Calculation
+            const bmi = weight / (height * height);
+            messages += `<p>Patient has a BMI of <strong>${bmi.toFixed(2)}</strong>.</p>`;
+
+            // IBW and Quick Factors for Obesity
+            let ibw;
+            if (bmi > 30) {
+                messages += `<p>Since BMI is greater than 30, applying weight correction (Hamwi method):</p>`;
+                if (sex === "M") {
+                    ibw = ((height * 100 - 152) / 2.54) * 2.73 + 50;
+                } else {
+                    ibw = ((height * 100 - 152) / 2.54) * 2.27 + 45.45;
+                }
+                messages += `<p>Hamwi IBW: <strong>${ibw.toFixed(2)} kg</strong>.</p>`;
+                const quickFactorMin = bmi <= 50 ? 11 * weight : 22 * ibw;
+                const quickFactorMax = bmi <= 50 ? 14 * weight : 25 * ibw;
+                messages += `<p>Quick factors for obesity: <strong>${quickFactorMin.toFixed(2)}-${quickFactorMax.toFixed(2)} kcal</strong>.</p>`;
+            }
+
+            // Harris-Benedict Equation
+            let hb;
+            if (bmi > 30) {
+                hb = sex === "M"
+                    ? 66.5 + 13.75 * ibw + 5 * height * 100 - 6.75 * age
+                    : 655.1 + 9.56 * ibw + 1.85 * height * 100 - 4.68 * age;
+            } else {
+                hb = sex === "M"
+                    ? 66.5 + 13.75 * weight + 5 * height * 100 - 6.75 * age
+                    : 655.1 + 9.56 * weight + 1.85 * height * 100 - 4.68 * age;
+            }
+            messages += `<p>Harris-Benedict requirements: <strong>${hb.toFixed(2)} kcal</strong>.</p>`;
+
+            // Mifflin-St Jeor Equation
+            const mif = sex === "M"
+                ? 10 * weight + 6.25 * height * 100 - 5 * age + 5
+                : 10 * weight + 6.25 * height * 100 - 5 * age - 161;
+            messages += `<p>Mifflin-St Jeor requirements: <strong>${mif.toFixed(2)} kcal</strong>.</p>`;
+
+            // Penn State Equation
+            let pennState;
+            if (ve !== null && temperature !== null) {
+                if (age > 60 && bmi > 20.5 && bmi <= 30) {
+                    pennState = hb * 0.85 + ve * 33 + temperature * 175 - 6433;
+                } else if (age <= 60 && bmi > 30) {
+                    pennState = hb * 1.1 + ve * 32 + temperature * 140 - 5340;
+                } else if (age <= 60 && bmi > 20.5 && bmi <= 30) {
+                    pennState = mif * 0.96 + ve * 31 + temperature * 167 - 6212;
+                } else if (age > 60 && bmi > 30) {
+                    pennState = mif * 0.71 + ve * 64 + temperature * 85 - 3085;
+                } else {
+                    pennState = mif * 0.76 + ve * 45 + temperature * 86 - 3102;
+                }
+                messages += `<p>Penn State requirements: <strong>${pennState.toFixed(2)} kcal</strong>.</p>`;
+            } else {
+                messages += `<p class='warning'>Penn State cannot be calculated due to missing Ve or Temperature values.</p>`;
+            }
+
+            // Burn Patient Equations
+            if (tbsa !== null && ci !== null && hb !== null && temperature !== null && days !== null && activityFactor !== null) {
+                const toronto = -4343 + 10.5 * tbsa + 0.23 * ci + 0.84 * hb + 114 * temperature - 26 * days;
+                const adjustedHb = hb * activityFactor * (tbsaStressFactor || 1);
+                messages += `<p>Toronto formula requirements: <strong>${toronto.toFixed(2)} kcal</strong>.</p>`;
+                messages += `<p>Adjusted HB requirements: <strong>${adjustedHb.toFixed(2)} kcal</strong>.</p>`;
+            } else {
+                messages += `<p class='warning'>Burn patient equations cannot be calculated due to missing inputs.</p>`;
+            }
+
+            document.getElementById('outputMessages').innerHTML = messages;
+        }
+    </script>
+</body>
+
+</html>
