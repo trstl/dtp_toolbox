@@ -173,8 +173,8 @@
 </footer>
 
     <script>
-        // Hardcoded version date
-        const hardcodedVersionDate = "23/12/2024";
+        // Hardcoded version date (DD/MM/YYYY)
+        const hardcodedVersionDate = "03/01/2025";
 
         // Set the version information dynamically
         document.getElementById("version-info").textContent = `Version: ${hardcodedVersionDate}`;
@@ -203,7 +203,7 @@
                 if (formattedCommitDate === hardcodedVersionDate) {
                     statusElement.textContent = "This is the latest version.";
                 } else {
-                    statusElement.innerHTML = `A newer version is available. <a href="${fileUrl}" target="_blank">Download the latest version here</a>.`;
+                    statusElement.innerHTML = `Wow! A newer version is available. <a href="${fileUrl}" target="_blank">Download the latest version here</a>.`;
                 }
             } catch (error) {
                 // Handle errors gracefully
