@@ -132,10 +132,10 @@
 
             <hr class="horizontal-line">
 
-            <label for="tbsa">TBSA (Burn Surface Area %) <span class="info-icon" data-title="TBSA represents the total burn surface area expressed in % (0-100 range)">?</span></label>
+            <label for="tbsa">TBSA (Burn Surface Area %) <span class="info-icon" data-title="TBSA represents the total burn surface area expressed in % (0-100 range).">?</span></label>
             <input type="number" id="tbsa" name="tbsa">
 
-            <label for="ci">Calories Ingested (kcal) <span class="info-icon" data-title="CI represents the ingested calories expressed in kcal">?</span></label>
+            <label for="ci">Calories Ingested (kcal) <span class="info-icon" data-title="CI represents the ingested calories expressed in kcal.">?</span></label>
             <small></small>
             <input type="number" id="ci" name="ci">
 
@@ -144,11 +144,11 @@
 
             <input type="number" id="days" name="days">
 
-            <label for="activityFactor">Activity Factor <span class="info-icon" data-title="Activity factor will be used to multiply the estimated requirements">?</span></label>
+            <label for="activityFactor">Activity Factor <span class="info-icon" data-title="Activity factor will be used to multiply the estimated requirements for the adjusted HB equation.">?</span></label>
     
             <input type="number" id="activityFactor" name="activityFactor">
 
-            <label for="tbsaStressFactor">TBSA Stress Factor <span class="info-icon" data-title="TBSA Stress factors can be left blank or adjusted manually. If left blank, the calculator will choose a stress factor based on TBSA (linear function model).">?</span></label>
+            <label for="tbsaStressFactor">TBSA Stress Factor <span class="info-icon" data-title="TBSA Stress factors can be left blank or adjusted manually. If left blank, the calculator will choose a stress factor based on TBSA (linear function model). This factor applies to the adjusted HB equation only.">?</span></label>
     
             <input type="number" id="tbsaStressFactor" name="tbsaStressFactor">
 
@@ -164,9 +164,58 @@
         &copy; 2024 trstl. Licensed under 
         <a href="https://opensource.org/licenses/MIT" target="_blank">MIT License</a>. 
         Contact: <a href="mailto:tristan.st-laurent@umontreal.ca">tristan.st-laurent@umontreal.ca</a>
-	<p>version: 23/12/2024</p>
-    <p>Check for latest version <a href="https://github.com/trstl/dtp_toolbox">here</a></p></small>
-    </footer>
+    <p id="version-info">Version: ...</p>
+    <p id="latest-version-status">Checking for the latest version...</p>
+    <p>
+        Tool repository is   
+        <a href="https://github.com/trstl/dtp_toolbox" target="_blank">here</a>
+    </p>
+</footer>
+
+    <script>
+        // Hardcoded version date
+        const hardcodedVersionDate = "23/12/2024";
+
+        // Set the version information dynamically
+        document.getElementById("version-info").textContent = `Version: ${hardcodedVersionDate}`;
+
+        const repositoryUrl = "https://api.github.com/repos/trstl/dtp_toolbox/commits?path=Energy_requirements_calculator.html";
+        const fileUrl = "https://github.com/trstl/dtp_toolbox/blob/main/Energy_requirements_calculator.html";
+
+
+        // Function to check the latest version
+        async function checkLatestVersion() {
+            try {
+                // Fetch the latest commit information from GitHub
+                const response = await fetch(repositoryUrl);
+                if (!response.ok) throw new Error("Failed to fetch data from GitHub");
+
+                const commits = await response.json();
+                const latestCommitDate = new Date(commits[0].commit.committer.date);
+
+                // Format the date to match the hardcoded version format (DD/MM/YYYY)
+                const formattedCommitDate = latestCommitDate
+                    .toLocaleDateString("en-GB")
+                    .replace(/\//g, "/");
+
+                // Compare the dates
+                const statusElement = document.getElementById("latest-version-status");
+                if (formattedCommitDate === hardcodedVersionDate) {
+                    statusElement.textContent = "This is the latest version.";
+                } else {
+                    statusElement.innerHTML = `A newer version is available. <a href="${fileUrl}" target="_blank">Download the latest version here</a>.`;
+                }
+            } catch (error) {
+                // Handle errors gracefully
+                document.getElementById("latest-version-status").textContent =
+                    "No internet connection; cannot check for the latest version.";
+            }
+        }
+
+        // Call the function on page load
+        checkLatestVersion();
+    </script>
+
     </div>
     <script>
         function calculateResults() {
@@ -216,10 +265,10 @@
                 } else {
                     ibw = ((height * 100 - 152) / 2.54) * 2.27 + 45.45;
                 }
-                messages += `<p>Hamwi IBW: <strong>${ibw.toFixed(2)} kg</strong>.</p>`;
+                messages += `<p>Hamwi IBW: <strong>${ibw.toFixed(2)} kg</strong></p>`;
                 const quickFactorMin = bmi <= 50 ? 11 * weight : 22 * ibw;
                 const quickFactorMax = bmi <= 50 ? 14 * weight : 25 * ibw;
-                messages += `<p>Quick factors for obesity: <strong>${quickFactorMin.toFixed(2)}-${quickFactorMax.toFixed(2)} kcal</strong>.</p>`;
+                messages += `<p>Quick factors for obesity: <strong>${quickFactorMin.toFixed(2)} - ${quickFactorMax.toFixed(2)} kcal</strong></p>`;
             }
     
             // Harris-Benedict Equation
@@ -233,13 +282,13 @@
                     ? 66.5 + 13.75 * weight + 5 * height * 100 - 6.75 * age
                     : 655.1 + 9.56 * weight + 1.85 * height * 100 - 4.68 * age;
             }
-            messages += `<p>Harris-Benedict requirements: <strong>${hb.toFixed(2)} kcal</strong>.</p>`;
+            messages += `<p>Harris-Benedict requirements: <strong>${hb.toFixed(2)} kcal</strong></p>`;
     
             // Mifflin-St Jeor Equation
             const mif = sex === "M"
                 ? 10 * weight + 6.25 * height * 100 - 5 * age + 5
                 : 10 * weight + 6.25 * height * 100 - 5 * age - 161;
-            messages += `<p>Mifflin-St Jeor requirements: <strong>${mif.toFixed(2)} kcal</strong>.</p>`;
+            messages += `<p>Mifflin-St Jeor requirements: <strong>${mif.toFixed(2)} kcal</strong></p>`;
     
             // Penn State Equation
             let pennState;
@@ -255,41 +304,53 @@
                 } else {
                     pennState = mif * 0.76 + ve * 45 + temperature * 86 - 3102;
                 }
-                messages += `<p>Penn State requirements: <strong>${pennState.toFixed(2)} kcal</strong>.</p>`;
+                messages += `<p>Penn State requirements: <strong>${pennState.toFixed(2)} kcal</strong></p>`;
             } else {
                 messages += `<p class='warning'>Penn State cannot be calculated due to missing Ve or Temperature values.</p>`;
             }
     
-            // Define TBSA Stress Factor
-            if (tbsaStressFactor === null || tbsaStressFactor === undefined || tbsaStressFactor === "") {
-                if (tbsa > 0 && tbsa < 20) {
-                    tbsaStressFactor = 0.025 * tbsa + 1;
-                    messages += `<p>Due to omission of TBSA Stress Factor, ${tbsaStressFactor.toFixed(2)} was chosen based on TBSA for adjusted HB.</p>`;
-                } else if (tbsa >= 20 && tbsa < 40) {
-                    tbsaStressFactor = 0.0175 * (tbsa - 20) + 1.5;
-                    messages += `<p>Due to omission of TBSA Stress Factor, ${tbsaStressFactor.toFixed(2)} was chosen based on TBSA for adjusted HB.</p>`;
-                } else if (tbsa >= 40) {
-                    tbsaStressFactor = 0.0033333 * (tbsa - 40) + 1.85;
-                    messages += `<p>Due to omission of TBSA Stress Factor, ${tbsaStressFactor.toFixed(2)} was chosen based on TBSA for adjusted HB.</p>`;
-                }
-            }
-    
-            if (tbsaStressFactor < 1 || tbsaStressFactor > 2.05) {
-                messages += `<p>The TBSA Stress Factor is outside expected values (1 to 2.05).</p>`;
-            }
+
+
+
     
             // Burn Patient Equations
-            if (tbsa !== null && ci !== null && hb !== null && temperature !== null && days !== null && activityFactor !== null) {
-                const toronto = -4343 + 10.5 * tbsa + 0.23 * ci + 0.84 * hb + 114 * temperature - 26 * days;
-                const adjustedHb = hb * activityFactor * (tbsaStressFactor || 1);
-                messages += `<p>Toronto formula requirements: <strong>${toronto.toFixed(2)} kcal</strong>.</p>`;
-                messages += `<p>Adjusted HB requirements: <strong>${adjustedHb.toFixed(2)} kcal</strong>.</p>`;
-            } else {
-                messages += `<p class='warning'>Burn patient equations cannot be calculated due to missing inputs.</p>`;
+            if (tbsa !== null && ci !== null && hb !== null && temperature !== null && days !== null) {
+
+                // Display null activity factor assumption
+                if (activityFactor === null || activityFactor === undefined || activityFactor === "") {
+                    messages += `<p>Due to omission of the Activity Factor, a value of 1 was chosen by default.</p>`;
+                }
+
+                // Define TBSA Stress Factor
+                if (tbsaStressFactor === null || tbsaStressFactor === undefined || tbsaStressFactor === "") {
+                    if (tbsa > 0 && tbsa < 20) {
+                        tbsaStressFactor = 0.025 * tbsa + 1;
+                        messages += `<p>Due to omission of TBSA Stress Factor, ${tbsaStressFactor.toFixed(3)} was chosen based on TBSA for adjusted HB.</p>`;
+                    } else if (tbsa >= 20 && tbsa < 40) {
+                        tbsaStressFactor = 0.0175 * (tbsa - 20) + 1.5;
+                        messages += `<p>Due to omission of TBSA Stress Factor, ${tbsaStressFactor.toFixed(3)} was chosen based on TBSA for adjusted HB.</p>`;
+                    } else if (tbsa >= 40) {
+                        tbsaStressFactor = 0.0033333 * (tbsa - 40) + 1.85;
+                        messages += `<p>Due to omission of TBSA Stress Factor, ${tbsaStressFactor.toFixed(3)} was chosen based on TBSA for adjusted HB.</p>`;
+                    }
+                }
+        
+                if ((tbsaStressFactor < 1 && tbsaStressFactor !== null) || (tbsaStressFactor > 2.05 && tbsaStressFactor !== null)) {
+
+                    messages += `<p>The TBSA Stress Factor is outside expected values (1 to 2.05).</p>`;
+                }
+
+                    const toronto = -4343 + 10.5 * tbsa + 0.23 * ci + 0.84 * hb + 114 * temperature - 26 * days;
+                    const adjustedHb = hb * (activityFactor || 1) * (tbsaStressFactor || 1);
+                    messages += `<p>Toronto formula requirements: <strong>${toronto.toFixed(2)} kcal</strong></p>`;
+                    messages += `<p>Adjusted HB requirements: <strong>${adjustedHb.toFixed(2)} kcal</strong></p>`;
+                } else {
+                    messages += `<p class='warning'>Burn patient equations cannot be calculated due to missing inputs.</p>`;
+                }
+        
+                document.getElementById('outputMessages').innerHTML = messages;
             }
-    
-            document.getElementById('outputMessages').innerHTML = messages;
-        }
+
     </script>
     
 </body>
